@@ -2,7 +2,7 @@ import gspread
 from oauth2client.service_account import ServiceAccountCredentials
 from pathlib import Path
 import telegram
-from telegram.ext import Updater, CommandHandler, MessageHandler
+from telegram.ext import Updater, CommandHandler, MessageHandler, Filters
 
 
 TOKEN_FILE = 'token.txt'
@@ -64,9 +64,20 @@ class Data:
 
 def start(update, context):
     msg = update.message
-    print(msg.chat.first_name)
+    msg.bot.delete_message(msg.chat_id, msg.message_id)
     msg.bot.send_message(msg.chat_id, text=f'Привет {msg.chat.first_name}, надеюсь этот бот как-то поможет тебе. '
-    f'С жалобами и предложениеми пишите @maktsy', reply_markup = telegram.ReplyKeyboardMarkup([['Начать']], True))
+                                           f'Сейчас частично доступны темы дифференциальные уравнения и кратные '
+                                           f'интеграллы.\n'
+                                           f'С жалобами и предложениеми пишите @maktsy',
+                                            reply_markup = telegram.ReplyKeyboardMarkup([['Начать']], True))
+
+
+def turbo_ekz(update, context):
+    msg = update.message
+    msg.bot.send_message(msg.chat_id, text=f'{msg.chat.first_name}, добро пожаловать в режим экзамен, теперь теория '
+                                           f'стала доступнее\nСкорее выбирай номер темы:\n'
+                                           f'1. Тема_1\n'
+                                           f'2. Тема_2\n')
 
 
 def common(update, context):
@@ -134,8 +145,9 @@ def common(update, context):
 def main():
     updater = Updater(token=TOKEN, use_context=True)
     dp = updater.dispatcher
+    dp.add_handler(MessageHandler(Filters.text, common))
     dp.add_handler(CommandHandler('start', start))
-    dp.add_handler(MessageHandler(None, common))
+    dp.add_handler(CommandHandler('ekz_mode', turbo_ekz))
     updater.start_polling()
     updater.idle()
 
